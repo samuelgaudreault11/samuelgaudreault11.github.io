@@ -1,1 +1,910 @@
 # samuelgaudreault11.github.io
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Agora Québec" />
+  <title>Agora Québec — Cockpit</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: #0D0F10; }
+    body { font-family: 'Outfit', system-ui, sans-serif; color: #D8D4CE; overscroll-behavior: none; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: #111316; }
+    ::-webkit-scrollbar-thumb { background: #2A2D32; border-radius: 4px; }
+    input, textarea, select, button { font-family: 'Outfit', system-ui, sans-serif; }
+    textarea { resize: vertical; }
+    @keyframes slideIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useCallback } = React;
+
+    const LEVELS_DEFAULT = [
+      {
+        id: 1,
+        title: "Fondation",
+        subtitle: "Poser les bases",
+        icon: "◈",
+        color: "#C8A96E",
+        tasks: [
+          { id: "1-1", text: "Définir la mission officielle d’Agora Québec", done: false, priority: "élevé" },
+          { id: "1-2", text: "Formaliser le format du débat (règles, durée, structure)", done: false, priority: "élevé" },
+          { id: "1-3", text: "Rédiger les règles de participation", done: false, priority: "moyen" },
+          { id: "1-4", text: "Documenter le concept central et le slogan", done: false, priority: "moyen" },
+          { id: "1-5", text: "Créer un document fondateur du projet", done: false, priority: "faible" },
+        ],
+      },
+      {
+        id: 2,
+        title: "Identité",
+        subtitle: "Construire la marque",
+        icon: "◎",
+        color: "#7C9EBF",
+        tasks: [
+          { id: "2-1", text: "Créer le logo officiel d’Agora Québec", done: false, priority: "élevé" },
+          { id: "2-2", text: "Définir la charte graphique (couleurs, typographie)", done: false, priority: "élevé" },
+          { id: "2-3", text: "Créer les profils sur les réseaux sociaux", done: false, priority: "moyen" },
+          { id: "2-4", text: "Concevoir les visuels pour les publications", done: false, priority: "moyen" },
+          { id: "2-5", text: "Préparer un kit presse / présentation du projet", done: false, priority: "faible" },
+        ],
+      },
+      {
+        id: 3,
+        title: "Première action",
+        subtitle: "Passer à l’exécution",
+        icon: "▶",
+        color: "#9E7CBF",
+        tasks: [
+          { id: "3-1", text: "Organiser le premier débat public", done: false, priority: "élevé" },
+          { id: "3-2", text: "Filmer et monter la première vidéo", done: false, priority: "élevé" },
+          { id: "3-3", text: "Publier la première vidéo sur les réseaux", done: false, priority: "élevé" },
+          { id: "3-4", text: "Tester le format et noter les améliorations", done: false, priority: "moyen" },
+          { id: "3-5", text: "Recruter 2-3 participants réguliers", done: false, priority: "faible" },
+        ],
+      },
+      {
+        id: 4,
+        title: "Validation",
+        subtitle: "Confirmer le concept",
+        icon: "◉",
+        color: "#BF7C7C",
+        tasks: [
+          { id: "4-1", text: "Réaliser 5 débats publics documentés", done: false, priority: "élevé" },
+          { id: "4-2", text: "Recueillir des retours des participants", done: false, priority: "moyen" },
+          { id: "4-3", text: "Affiner le format selon les retours", done: false, priority: "moyen" },
+          { id: "4-4", text: "Atteindre 500 abonnés sur les réseaux", done: false, priority: "faible" },
+          { id: "4-5", text: "Identifier 2 campus intéressés", done: false, priority: "élevé" },
+        ],
+      },
+      {
+        id: 5,
+        title: "Structuration",
+        subtitle: "Bâtir la machine",
+        icon: "⬡",
+        color: "#7CBF9E",
+        tasks: [
+          { id: "5-1", text: "Signer le premier partenariat officiel", done: false, priority: "élevé" },
+          { id: "5-2", text: "Organiser la première conférence payante", done: false, priority: "élevé" },
+          { id: "5-3", text: "Incorporer légalement la compagnie", done: false, priority: "moyen" },
+          { id: "5-4", text: "Constituer une équipe de base (2-3 personnes)", done: false, priority: "moyen" },
+          { id: "5-5", text: "Créer une offre de commandite structurée", done: false, priority: "faible" },
+        ],
+      },
+      {
+        id: 6,
+        title: "Expansion",
+        subtitle: "Scaler le mouvement",
+        icon: "◈",
+        color: "#BFB07C",
+        tasks: [
+          { id: "6-1", text: "Présence active sur 3+ campus québécois", done: false, priority: "élevé" },
+          { id: "6-2", text: "Production vidéo professionnelle régulière", done: false, priority: "élevé" },
+          { id: "6-3", text: "Atteindre 5 000 abonnés sur les plateformes", done: false, priority: "moyen" },
+          { id: "6-4", text: "Obtenir une couverture médiatique", done: false, priority: "moyen" },
+          { id: "6-5", text: "Lancer le site web public d’Agora Québec", done: false, priority: "faible" },
+        ],
+      },
+    ];
+
+    const P_ORDER = { élevé: 0, moyen: 1, faible: 2 };
+    const P_COLOR = { élevé: "#E87070", moyen: "#C8A96E", faible: "#7C9EBF" };
+
+    function load() {
+      try {
+        const r = localStorage.getItem("agora_v2");
+        return r ? JSON.parse(r) : null;
+      } catch {
+        return null;
+      }
+    }
+
+    function save(s) {
+      try {
+        localStorage.setItem("agora_v2", JSON.stringify(s));
+      } catch {}
+    }
+
+    function calcPct(tasks) {
+      if (!tasks.length) return 0;
+      return Math.round((tasks.filter(t => t.done).length / tasks.length) * 100);
+    }
+
+    function calcAll(levels, custom = []) {
+      const all = [...levels.flatMap(l => l.tasks), ...custom];
+      return all.length ? Math.round((all.filter(t => t.done).length / all.length) * 100) : 0;
+    }
+
+    function getCurrent(levels) {
+      for (const l of levels) {
+        if (calcPct(l.tasks) < 100) return l;
+      }
+      return levels[levels.length - 1];
+    }
+
+    function Ring({ pct, color, size = 52, stroke = 4 }) {
+      const r = (size - stroke * 2) / 2;
+      const c = 2 * Math.PI * r;
+      const off = c - (pct / 100) * c;
+
+      return (
+        <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={r}
+            fill="none"
+            stroke="rgba(255,255,255,0.06)"
+            strokeWidth={stroke}
+          />
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={r}
+            fill="none"
+            stroke={color}
+            strokeWidth={stroke}
+            strokeDasharray={c}
+            strokeDashoffset={off}
+            strokeLinecap="round"
+            style={{ transition: "stroke-dashoffset 0.6s cubic-bezier(.4,0,.2,1)" }}
+          />
+        </svg>
+      );
+    }
+
+    function Badge({ p }) {
+      return (
+        <span
+          style={{
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: "0.08em",
+            padding: "2px 7px",
+            borderRadius: 4,
+            background: P_COLOR[p] + "22",
+            color: P_COLOR[p],
+            border: `1px solid ${P_COLOR[p]}44`,
+            textTransform: "uppercase",
+            fontFamily: "'DM Mono', monospace",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {p}
+        </span>
+      );
+    }
+
+    function App() {
+      const saved = load();
+
+      const [levels, setLevels] = useState(() => {
+        if (saved?.levels) {
+          return LEVELS_DEFAULT.map(lv => ({
+            ...lv,
+            tasks: lv.tasks.map(t => {
+              const s = saved.levels.flatMap(l => l.tasks).find(x => x.id === t.id);
+              return s ? { ...t, done: s.done } : t;
+            }),
+          }));
+        }
+        return LEVELS_DEFAULT;
+      });
+
+      const [custom, setCustom] = useState(saved?.custom || []);
+      const [journal, setJournal] = useState(saved?.journal || []);
+      const [tab, setTab] = useState("dashboard");
+      const [activeLv, setActiveLv] = useState(null);
+      const [draft, setDraft] = useState("");
+      const [newTask, setNewTask] = useState({ text: "", levelId: 1, priority: "moyen" });
+      const [showAdd, setShowAdd] = useState(false);
+      const [notif, setNotif] = useState(null);
+      const notifRef = useRef();
+
+      useEffect(() => {
+        save({ levels, custom, journal });
+      }, [levels, custom, journal]);
+
+      const notify = useCallback((msg) => {
+        setNotif(msg);
+        clearTimeout(notifRef.current);
+        notifRef.current = setTimeout(() => setNotif(null), 2200);
+      }, []);
+
+      const pctAll = calcAll(levels, custom);
+      const cur = getCurrent(levels);
+      const doneAll = levels.flatMap(l => l.tasks).filter(t => t.done).length + custom.filter(t => t.done).length;
+      const totalAll = levels.flatMap(l => l.tasks).length + custom.length;
+
+      const toggleLv = (lvId, tId) =>
+        setLevels(prev =>
+          prev.map(l =>
+            l.id === lvId
+              ? { ...l, tasks: l.tasks.map(t => (t.id === tId ? { ...t, done: !t.done } : t)) }
+              : l
+          )
+        );
+
+      const toggleC = (id) =>
+        setCustom(prev => prev.map(t => (t.id === id ? { ...t, done: !t.done } : t)));
+
+      const delC = (id) => {
+        setCustom(prev => prev.filter(t => t.id !== id));
+        notify("Tâche supprimée");
+      };
+
+      const addC = () => {
+        if (!newTask.text.trim()) return;
+        setCustom(prev => [...prev, { id: `c-${Date.now()}`, ...newTask, done: false }]);
+        setNewTask({ text: "", levelId: 1, priority: "moyen" });
+        setShowAdd(false);
+        notify("Tâche ajoutée ✓");
+      };
+
+      const addEntry = () => {
+        if (!draft.trim()) return;
+        const e = {
+          id: Date.now(),
+          date: new Date().toLocaleDateString("fr-CA", {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          }),
+          time: new Date().toLocaleTimeString("fr-CA", {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          content: draft.trim(),
+        };
+        setJournal(prev => [e, ...prev]);
+        setDraft("");
+        notify("Entrée enregistrée ✓");
+      };
+
+      const delEntry = (id) => setJournal(prev => prev.filter(e => e.id !== id));
+
+      const nextTasks = levels
+        .flatMap(l => l.tasks.filter(t => !t.done).map(t => ({ ...t, lvTitle: l.title, lvColor: l.color })))
+        .sort((a, b) => P_ORDER[a.priority] - P_ORDER[b.priority])
+        .slice(0, 5);
+
+      const allTasks = [
+        ...levels.flatMap(l =>
+          l.tasks.map(t => ({
+            ...t,
+            lvTitle: l.title,
+            lvColor: l.color,
+            lvId: l.id,
+            isC: false,
+          }))
+        ),
+        ...custom.map(t => ({
+          ...t,
+          lvTitle: levels.find(l => l.id === t.levelId)?.title || "Perso",
+          lvColor: levels.find(l => l.id === t.levelId)?.color || "#888",
+          lvId: t.levelId,
+          isC: true,
+        })),
+      ].sort((a, b) => P_ORDER[a.priority] - P_ORDER[b.priority]);
+
+      const S = {
+        root: { minHeight: "100vh", background: "#0D0F10", display: "flex", flexDirection: "column" },
+        nav: {
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          background: "#111316",
+          borderTop: "1px solid #1C1F22",
+          display: "flex",
+          zIndex: 100,
+          paddingBottom: "env(safe-area-inset-bottom)",
+        },
+        navBtn: active => ({
+          flex: 1,
+          background: "transparent",
+          border: "none",
+          padding: "12px 4px 10px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 3,
+          cursor: "pointer",
+          color: active ? "#C8A96E" : "#444",
+          transition: "color 0.15s",
+        }),
+        navIcon: { fontSize: 18 },
+        navLabel: { fontSize: 10, fontWeight: 600, letterSpacing: "0.05em" },
+        content: { flex: 1, paddingBottom: 80, overflowY: "auto" },
+        topBar: {
+          background: "#111316",
+          borderBottom: "1px solid #1C1F22",
+          padding: "16px 18px 14px",
+          paddingTop: "calc(16px + env(safe-area-inset-top))",
+        },
+        brandRow: { display: "flex", alignItems: "center", justifyContent: "space-between" },
+        brandLeft: { display: "flex", alignItems: "center", gap: 10 },
+        brandIcon: {
+          width: 32,
+          height: 32,
+          background: "#C8A96E",
+          borderRadius: 8,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: 16,
+          fontWeight: 900,
+          color: "#0D0F10",
+        },
+        brandName: { fontSize: 14, fontWeight: 800, color: "#F0EDE8", letterSpacing: "0.1em" },
+        brandSub: { fontSize: 9, color: "#C8A96E", letterSpacing: "0.2em", fontFamily: "'DM Mono', monospace" },
+        pctBadge: {
+          fontSize: 11,
+          fontWeight: 700,
+          color: "#C8A96E",
+          fontFamily: "'DM Mono', monospace",
+          background: "#C8A96E15",
+          border: "1px solid #C8A96E33",
+          borderRadius: 6,
+          padding: "4px 10px",
+        },
+        progBar: { height: 2, background: "#1C1F22", marginTop: 12 },
+        progFill: { height: "100%", background: "linear-gradient(90deg,#C8A96E,#E8C98E)", transition: "width 0.5s", borderRadius: 2 },
+        page: { padding: "20px 16px" },
+        secTitle: {
+          fontSize: 10,
+          fontWeight: 700,
+          color: "#555",
+          letterSpacing: "0.12em",
+          textTransform: "uppercase",
+          marginBottom: 12,
+          marginTop: 24,
+          fontFamily: "'DM Mono', monospace",
+        },
+        statsGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 4 },
+        statCard: { background: "#111316", border: "1px solid #1C1F22", borderRadius: 12, padding: "16px 14px" },
+        statVal: c => ({ fontSize: 28, fontWeight: 800, color: c, fontFamily: "'DM Mono', monospace", letterSpacing: "-0.02em" }),
+        statLbl: { fontSize: 10, color: "#666", marginTop: 3, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em" },
+        statSub: { fontSize: 10, color: "#444", marginTop: 1 },
+        lvCard: { background: "#111316", border: "1px solid #1C1F22", borderRadius: 12, padding: "14px", marginBottom: 8, cursor: "pointer" },
+        lvCardRow: { display: "flex", alignItems: "center", gap: 12 },
+        lvCardInfo: { flex: 1 },
+        lvNum: c => ({ fontSize: 9, fontWeight: 700, color: c, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", textTransform: "uppercase" }),
+        lvTitle: { fontSize: 14, fontWeight: 700, color: "#D8D4CE", marginTop: 1 },
+        lvPct: (c, done) => ({ fontSize: 18, fontWeight: 800, fontFamily: "'DM Mono', monospace", color: done ? "#7CBF9E" : c }),
+        miniBar: { height: 3, background: "#1C1F22", borderRadius: 4, marginTop: 8 },
+        miniFill: (w, c) => ({ height: "100%", width: w, background: c, borderRadius: 4, transition: "width 0.5s" }),
+        ntItem: {
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          background: "#111316",
+          border: "1px solid #1C1F22",
+          borderRadius: 10,
+          padding: "12px 14px",
+          marginBottom: 8,
+        },
+        ntText: { fontSize: 13, color: "#D8D4CE", fontWeight: 500, flex: 1 },
+        ntMeta: { fontSize: 10, color: "#555", marginTop: 2 },
+        lvFull: {
+          background: "#111316",
+          border: "1px solid #1C1F22",
+          borderLeft: "4px solid",
+          borderRadius: 12,
+          padding: "16px",
+          marginBottom: 8,
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          gap: 14,
+        },
+        lvBadge: c => ({ fontSize: 9, fontWeight: 700, padding: "2px 7px", borderRadius: 4, background: c + "22", color: c, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em" }),
+        taskItem: {
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          background: "#111316",
+          border: "1px solid #1C1F22",
+          borderRadius: 10,
+          padding: "13px 14px",
+          marginBottom: 6,
+        },
+        chk: (done, c) => ({
+          width: 20,
+          height: 20,
+          borderRadius: 5,
+          border: `2px solid ${done ? c : "#333"}`,
+          background: done ? c : "transparent",
+          flexShrink: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          cursor: "pointer",
+          transition: "all 0.15s",
+        }),
+        taskTxt: done => ({
+          fontSize: 13,
+          fontWeight: 500,
+          color: done ? "#444" : "#D8D4CE",
+          textDecoration: done ? "line-through" : "none",
+          flex: 1,
+        }),
+        addBtn: {
+          background: "#C8A96E22",
+          border: "1px solid #C8A96E55",
+          color: "#C8A96E",
+          fontSize: 13,
+          fontWeight: 600,
+          padding: "9px 16px",
+          borderRadius: 8,
+          cursor: "pointer",
+        },
+        confirmBtn: {
+          background: "#C8A96E",
+          border: "none",
+          color: "#0D0F10",
+          fontSize: 13,
+          fontWeight: 700,
+          padding: "10px 20px",
+          borderRadius: 8,
+          cursor: "pointer",
+          whiteSpace: "nowrap",
+        },
+        delBtn: {
+          background: "transparent",
+          border: "none",
+          color: "#333",
+          cursor: "pointer",
+          fontSize: 14,
+          padding: "4px 8px",
+          borderRadius: 4,
+        },
+        backBtn: {
+          background: "transparent",
+          border: "none",
+          color: "#555",
+          fontSize: 13,
+          cursor: "pointer",
+          padding: "0 0 16px",
+          display: "flex",
+          alignItems: "center",
+          gap: 4,
+        },
+        addForm: {
+          background: "#111316",
+          border: "1px solid #2A2D32",
+          borderRadius: 12,
+          padding: "16px",
+          marginBottom: 16,
+          display: "flex",
+          flexDirection: "column",
+          gap: 10,
+        },
+        inp: {
+          background: "#0D0F10",
+          border: "1px solid #2A2D32",
+          borderRadius: 8,
+          color: "#D8D4CE",
+          fontSize: 14,
+          padding: "10px 12px",
+          outline: "none",
+          width: "100%",
+        },
+        sel: {
+          background: "#0D0F10",
+          border: "1px solid #2A2D32",
+          borderRadius: 8,
+          color: "#D8D4CE",
+          fontSize: 13,
+          padding: "9px 10px",
+          outline: "none",
+          flex: 1,
+        },
+        jEditor: {
+          background: "#111316",
+          border: "1px solid #1C1F22",
+          borderRadius: 14,
+          padding: "16px",
+          marginBottom: 16,
+        },
+        ta: {
+          width: "100%",
+          minHeight: 120,
+          background: "#0D0F10",
+          border: "1px solid #2A2D32",
+          borderRadius: 10,
+          color: "#D8D4CE",
+          fontSize: 14,
+          padding: "12px",
+          outline: "none",
+          lineHeight: 1.7,
+        },
+        jEntry: {
+          background: "#111316",
+          border: "1px solid #1C1F22",
+          borderRadius: 12,
+          padding: "16px",
+          marginBottom: 8,
+        },
+        jDate: { fontSize: 12, fontWeight: 600, color: "#C8A96E", textTransform: "capitalize" },
+        jTime: { fontSize: 10, color: "#444", marginTop: 1, fontFamily: "'DM Mono', monospace" },
+        jContent: { fontSize: 13, color: "#999", lineHeight: 1.75, whiteSpace: "pre-wrap", marginTop: 10 },
+        empty: {
+          textAlign: "center",
+          color: "#444",
+          fontSize: 13,
+          padding: "32px 16px",
+          border: "1px dashed #1C1F22",
+          borderRadius: 12,
+        },
+        detHeader: {
+          background: "#111316",
+          border: "1px solid",
+          borderRadius: 14,
+          padding: "20px",
+          marginBottom: 20,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12,
+        },
+      };
+
+      const TABS = [
+        { id: "dashboard", label: "Dashboard", icon: "⊞" },
+        { id: "levels", label: "Niveaux", icon: "◈" },
+        { id: "tasks", label: "Tâches", icon: "◻" },
+        { id: "journal", label: "Journal", icon: "◇" },
+      ];
+
+      return (
+        <div style={S.root}>
+          {notif && (
+            <div
+              style={{
+                position: "fixed",
+                top: 60,
+                left: "50%",
+                transform: "translateX(-50%)",
+                zIndex: 999,
+                background: "#1a3d2b",
+                border: "1px solid #3a7d5a",
+                color: "#7CBF9E",
+                padding: "10px 20px",
+                borderRadius: 10,
+                fontSize: 13,
+                fontWeight: 600,
+                animation: "slideIn 0.2s ease",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {notif}
+            </div>
+          )}
+
+          <div style={S.topBar}>
+            <div style={S.brandRow}>
+              <div style={S.brandLeft}>
+                <div style={S.brandIcon}>A</div>
+                <div>
+                  <div style={S.brandName}>AGORA QUÉBEC</div>
+                  <div style={S.brandSub}>"Prouve-moi le contraire"</div>
+                </div>
+              </div>
+              <div style={S.pctBadge}>{pctAll}%</div>
+            </div>
+            <div style={S.progBar}>
+              <div style={{ ...S.progFill, width: `${pctAll}%` }} />
+            </div>
+          </div>
+
+          <div style={S.content}>
+            {tab === "dashboard" && (
+              <div style={S.page}>
+                <div style={{ fontSize: 20, fontWeight: 800, color: "#F0EDE8", marginBottom: 4, letterSpacing: "-0.01em" }}>
+                  Cockpit Stratégique
+                </div>
+                <div style={{ fontSize: 12, color: "#555", marginBottom: 20 }}>
+                  {new Date().toLocaleDateString("fr-CA", { weekday: "long", day: "numeric", month: "long" })}
+                </div>
+
+                <div style={S.statsGrid}>
+                  {[
+                    { l: "Progression", v: `${pctAll}%`, s: `${doneAll}/${totalAll} tâches`, c: "#C8A96E" },
+                    { l: "Niveau actuel", v: `N${cur.id}`, s: cur.title, c: cur.color },
+                    { l: "Complétées", v: doneAll, s: "actions faites", c: "#7CBF9E" },
+                    { l: "Restantes", v: totalAll - doneAll, s: "à accomplir", c: "#9E7CBF" },
+                  ].map((s, i) => (
+                    <div key={i} style={S.statCard}>
+                      <div style={S.statVal(s.c)}>{s.v}</div>
+                      <div style={S.statLbl}>{s.l}</div>
+                      <div style={S.statSub}>{s.s}</div>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={S.secTitle}>Niveaux</div>
+                {levels.map(lv => {
+                  const p = calcPct(lv.tasks);
+                  return (
+                    <div
+                      key={lv.id}
+                      style={{ ...S.lvCard, borderColor: lv.id === cur.id ? lv.color + "44" : "#1C1F22" }}
+                      onClick={() => {
+                        setTab("levels");
+                        setActiveLv(lv.id);
+                      }}
+                    >
+                      <div style={S.lvCardRow}>
+                        <div style={{ position: "relative", flexShrink: 0 }}>
+                          <Ring pct={p} color={lv.color} size={44} stroke={3} />
+                          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <span style={{ fontSize: 14, color: lv.color }}>{lv.icon}</span>
+                          </div>
+                        </div>
+                        <div style={S.lvCardInfo}>
+                          <div style={S.lvNum(lv.color)}>Niveau {lv.id}</div>
+                          <div style={S.lvTitle}>{lv.title}</div>
+                        </div>
+                        <div style={S.lvPct(lv.color, p === 100)}>{p === 100 ? "✓" : `${p}%`}</div>
+                      </div>
+                      <div style={S.miniBar}>
+                        <div style={S.miniFill(`${p}%`, lv.color)} />
+                      </div>
+                    </div>
+                  );
+                })}
+
+                <div style={S.secTitle}>Prochaines priorités</div>
+                {nextTasks.length === 0 && <div style={S.empty}>Toutes les tâches sont complétées 🎉</div>}
+                {nextTasks.map(t => (
+                  <div key={t.id} style={S.ntItem}>
+                    <div style={{ width: 3, alignSelf: "stretch", background: t.lvColor, borderRadius: 2, flexShrink: 0 }} />
+                    <div style={{ flex: 1 }}>
+                      <div style={S.ntText}>{t.text}</div>
+                      <div style={S.ntMeta}>{t.lvTitle}</div>
+                    </div>
+                    <Badge p={t.priority} />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {tab === "levels" && (
+              <div style={S.page}>
+                <div style={{ fontSize: 20, fontWeight: 800, color: "#F0EDE8", marginBottom: 4 }}>Progression</div>
+                <div style={{ fontSize: 12, color: "#555", marginBottom: 20 }}>6 niveaux vers un mouvement établi</div>
+
+                {activeLv === null ? (
+                  <>
+                    {levels.map(lv => {
+                      const p = calcPct(lv.tasks);
+                      const d = lv.tasks.filter(t => t.done).length;
+                      return (
+                        <div key={lv.id} style={{ ...S.lvFull, borderLeftColor: lv.color }} onClick={() => setActiveLv(lv.id)}>
+                          <div style={{ position: "relative", flexShrink: 0 }}>
+                            <Ring pct={p} color={lv.color} size={56} stroke={4} />
+                            <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              <span style={{ fontSize: 18, color: lv.color }}>{lv.icon}</span>
+                            </div>
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                              <span style={S.lvBadge(lv.color)}>N{lv.id}</span>
+                              <span style={{ fontSize: 15, fontWeight: 700, color: "#F0EDE8" }}>{lv.title}</span>
+                            </div>
+                            <div style={{ fontSize: 11, color: "#555" }}>{lv.subtitle}</div>
+                            <div style={S.miniBar}>
+                              <div style={S.miniFill(`${p}%`, lv.color)} />
+                            </div>
+                          </div>
+                          <div style={{ textAlign: "right", flexShrink: 0 }}>
+                            <div style={{ fontSize: 20, fontWeight: 800, color: p === 100 ? "#7CBF9E" : lv.color, fontFamily: "'DM Mono', monospace" }}>{p}%</div>
+                            <div style={{ fontSize: 10, color: "#555" }}>{d}/{lv.tasks.length}</div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </>
+                ) : (() => {
+                  const lv = levels.find(l => l.id === activeLv);
+                  const p = calcPct(lv.tasks);
+                  return (
+                    <div>
+                      <button style={S.backBtn} onClick={() => setActiveLv(null)}>← Retour</button>
+                      <div style={{ ...S.detHeader, borderColor: lv.color + "44" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                          <div style={{ position: "relative" }}>
+                            <Ring pct={p} color={lv.color} size={60} stroke={4} />
+                            <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              <span style={{ fontSize: 20, color: lv.color }}>{lv.icon}</span>
+                            </div>
+                          </div>
+                          <div>
+                            <div style={{ fontSize: 10, color: lv.color, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: "'DM Mono', monospace" }}>
+                              Niveau {lv.id}
+                            </div>
+                            <div style={{ fontSize: 20, fontWeight: 800, color: "#F0EDE8" }}>{lv.title}</div>
+                            <div style={{ fontSize: 12, color: "#555" }}>{lv.subtitle}</div>
+                          </div>
+                        </div>
+                        <div style={{ fontSize: 32, fontWeight: 800, color: lv.color, fontFamily: "'DM Mono', monospace" }}>{p}%</div>
+                      </div>
+                      {lv.tasks.map(t => (
+                        <div key={t.id} style={{ ...S.taskItem, opacity: t.done ? 0.5 : 1 }} onClick={() => toggleLv(lv.id, t.id)}>
+                          <div style={S.chk(t.done, lv.color)}>
+                            {t.done && <span style={{ color: "#0D0F10", fontSize: 10, fontWeight: 900 }}>✓</span>}
+                          </div>
+                          <div style={S.taskTxt(t.done)}>{t.text}</div>
+                          <Badge p={t.priority} />
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
+            {tab === "tasks" && (
+              <div style={S.page}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                  <div>
+                    <div style={{ fontSize: 20, fontWeight: 800, color: "#F0EDE8" }}>Tâches</div>
+                    <div style={{ fontSize: 12, color: "#555" }}>{allTasks.filter(t => !t.done).length} actives</div>
+                  </div>
+                  <button style={S.addBtn} onClick={() => setShowAdd(v => !v)}>
+                    {showAdd ? "✕ Annuler" : "+ Nouvelle"}
+                  </button>
+                </div>
+
+                {showAdd && (
+                  <div style={S.addForm}>
+                    <input
+                      value={newTask.text}
+                      onChange={e => setNewTask(prev => ({ ...prev, text: e.target.value }))}
+                      placeholder="Description de la tâche..."
+                      style={S.inp}
+                      autoFocus
+                    />
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      <select
+                        value={newTask.levelId}
+                        onChange={e => setNewTask(prev => ({ ...prev, levelId: +e.target.value }))}
+                        style={S.sel}
+                      >
+                        {levels.map(l => (
+                          <option key={l.id} value={l.id}>N{l.id} — {l.title}</option>
+                        ))}
+                      </select>
+                      <select
+                        value={newTask.priority}
+                        onChange={e => setNewTask(prev => ({ ...prev, priority: e.target.value }))}
+                        style={S.sel}
+                      >
+                        <option value="élevé">Élevé</option>
+                        <option value="moyen">Moyen</option>
+                        <option value="faible">Faible</option>
+                      </select>
+                    </div>
+                    <button onClick={addC} style={S.confirmBtn}>Ajouter la tâche</button>
+                  </div>
+                )}
+
+                {allTasks.length === 0 && <div style={S.empty}>Aucune tâche</div>}
+                {allTasks.map(t => (
+                  <div key={t.id} style={{ ...S.taskItem, opacity: t.done ? 0.5 : 1 }}>
+                    <div style={S.chk(t.done, t.lvColor)} onClick={() => t.isC ? toggleC(t.id) : toggleLv(t.lvId, t.id)}>
+                      {t.done && <span style={{ color: "#0D0F10", fontSize: 10, fontWeight: 900 }}>✓</span>}
+                    </div>
+                    <div style={{ flex: 1, cursor: "pointer" }} onClick={() => t.isC ? toggleC(t.id) : toggleLv(t.lvId, t.id)}>
+                      <div style={S.taskTxt(t.done)}>{t.text}</div>
+                      <div style={{ fontSize: 10, color: t.lvColor, marginTop: 2, fontFamily: "'DM Mono', monospace" }}>
+                        {t.lvTitle}{t.isC ? " · perso" : ""}
+                      </div>
+                    </div>
+                    <Badge p={t.priority} />
+                    {t.isC && <button onClick={() => delC(t.id)} style={S.delBtn}>✕</button>}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {tab === "journal" && (
+              <div style={S.page}>
+                <div style={{ fontSize: 20, fontWeight: 800, color: "#F0EDE8", marginBottom: 4 }}>Journal</div>
+                <div style={{ fontSize: 12, color: "#555", marginBottom: 16 }}>
+                  {journal.length} entrée{journal.length !== 1 ? "s" : ""}
+                </div>
+
+                <div style={S.jEditor}>
+                  <textarea
+                    value={draft}
+                    onChange={e => setDraft(e.target.value)}
+                    placeholder="Qu'avez-vous fait aujourd'hui ? Réflexions, ce qui marche, obstacles..."
+                    style={S.ta}
+                  />
+                  <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10 }}>
+                    <button
+                      onClick={addEntry}
+                      style={{ ...S.confirmBtn, opacity: draft.trim() ? 1 : 0.4 }}
+                      disabled={!draft.trim()}
+                    >
+                      Enregistrer →
+                    </button>
+                  </div>
+                </div>
+
+                {journal.length === 0 && <div style={S.empty}>Aucune entrée. Commencez à écrire ci-dessus.</div>}
+                {journal.map(e => (
+                  <div key={e.id} style={S.jEntry}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                      <div>
+                        <div style={S.jDate}>{e.date}</div>
+                        <div style={S.jTime}>{e.time}</div>
+                      </div>
+                      <button onClick={() => delEntry(e.id)} style={S.delBtn}>✕</button>
+                    </div>
+                    <div style={S.jContent}>{e.content}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <nav style={S.nav}>
+            {TABS.map(t => (
+              <button
+                key={t.id}
+                style={S.navBtn(tab === t.id)}
+                onClick={() => {
+                  setTab(t.id);
+                  setActiveLv(null);
+                }}
+              >
+                <span style={S.navIcon}>{t.icon}</span>
+                <span style={S.navLabel}>{t.label}</span>
+              </button>
+            ))}
+          </nav>
+        </div>
+      );
+    }
+
+    ReactDOM.render(<App />, document.getElementById("root"));
+  </script>
+</body>
+</html>
